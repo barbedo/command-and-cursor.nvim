@@ -8,11 +8,14 @@ local function get_cursor_region()
   row_s = row_s - 1
   local row_e, col_e
 
+  local regtype
+
   -- "\22" <=> Ctrl-V <=> "\x16"
   if mode:match "^[vV\22]" then
     row_e, col_e = vim.fn.line "v", vim.fn.col "v"
     col_e = col_e - 1
     row_e = row_e - 1
+    regtype = mode
 
     -- Cursor moved up, reverse `start` and `end`.
     if row_s > row_e then
@@ -25,14 +28,13 @@ local function get_cursor_region()
   else
     -- Non-visual mode.
     row_e, col_e = row_s, col_s
+    regtype = nil
   end
 
   if mode == "V" then
     col_s = 0
     col_e = #vim.fn.getline(row_e + 1)
   end
-
-  local regtype = mode
 
   -- Visual block mode,
   if mode == "\22" then
@@ -110,7 +112,7 @@ function M.setup(options)
 end
 
 function M.highlight()
-  vim.highlight.range(
+  vim.hl.range(
     0,
     namespace,
     M.defaults.hl_group,
